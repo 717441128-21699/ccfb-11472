@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="grid grid-4" style="margin-bottom:20px">
+  <div class="card"><div class="muted">纳管表数</div><div class="stat">{{ tables|length }}</div></div>
+  <div class="card"><div class="muted">未处理严重事件</div>
+    <div class="stat crit">{{ open_critical }}</div></div>
+  <div class="card"><div class="muted">未处理预警事件</div>
+    <div class="stat warn">{{ open_warning }}</div></div>
+  <div class="card"><div class="muted">健康状态</div>
+    <div class="stat {{ 'ok' if open_critical==0 else 'crit' }}">
+      {{ '正常' if open_critical==0 else '需关注' }}</div></div>
+</div>
+
+<div class="card">
+  <h2>表画像总览（点击表名进入详情）</h2>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>表名</th><th>来源类型</th><th>快照天数</th><th>最新日期</th>
+      <th>最新行数</th><th>列数</th><th>操作</th>
+    </tr></thead>
+    <tbody>
+    {% for t in tables %}
+      <tr>
+        <td><a href="{{ url_for('table_detail', table_id=t.table_id) }}">{{ t.name }}</a></td>
+        <td><span class="kind-tag">{{ t.kind }}</span></td>
+        <td>{{ t.snapshot_count or 0 }}</td>
+        <td class="mono">{{ t.latest_date or '—' }}</td>
+        <td>{{ t.latest_rows if t.latest_rows is not none else '—' }}</td>
+        <td>{{ t.latest_columns if t.latest_columns is not none else '—' }}</td>
+        <td><a class="btn small" href="{{ url_for('table_detail', table_id=t.table_id) }}">画像</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

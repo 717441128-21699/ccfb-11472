@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="card" style="margin-bottom:16px">
+  <h2>筛选</h2>
+  <form method="get">
+    <div class="toolbar">
+      <div style="min-width:180px">
+        <label>表</label>
+        <select name="table_id">
+          <option value="">全部</option>
+          {% for tid, name in sources.items() %}
+            <option value="{{ tid }}" {% if filters.table_id==tid %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="min-width:130px"><label>级别</label>
+        <select name="severity">
+          <option value="">全部</option>
+          {% for v in ['critical','warning','info'] %}
+            <option value="{{ v }}" {% if filters.severity==v %}selected{% endif %}>
+              {{ severity_labels[v] }}</option>
+          {% endfor %}
+        </select></div>
+      <div style="min-width:150px"><label>状态</label>
+        <select name="status">
+          <option value="">全部</option>
+          {% for v in ['open','false_positive','resolved','auto_downgraded'] %}
+            <option value="{{ v }}" {% if filters.status==v %}selected{% endif %}>{{ v }}</option>
+          {% endfor %}
+        </select></div>
+      <div style="min-width:200px"><label>指标</label>
+        <select name="metric">
+          <option value="">全部</option>
+          {% for m in metrics %}
+            <option value="{{ m }}" {% if filters.metric==m %}selected{% endif %}>
+              {{ metric_labels.get(m, m) }}</option>
+          {% endfor %}
+        </select></div>
+      <button class="btn primary" type="submit">应用筛选</button>
+      <a class="btn" href="{{ url_for('events_page') }}">重置</a>
+    </div>
+  </form>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <h2>误报反馈规则（同类事件后续自动降级/抑制，命中次数自动累计）</h2>
+  {% if feedback %}
+  <table>
+    <thead><tr><th>事件签名</th><th>表</th><th>指标</th><th>命中次数</th><th>备注</th><th></th></tr></thead>
+    <tbody>
+    {% for fb in feedback %}
+      <tr>
+        <td class="mono wrap">{{ fb.signature }}</td>
+        <td>{{ sources.get(fb.table_id, fb.table_id) }}</td>
+        <td>{{ metric_labels.get(fb.metric, fb.metric) }}</td>
+        <td>{{ fb.hit_count }}</td>
+        <td class="wrap">{{ fb.note }}</td>
+        <td><form class="inline-form" method="post"
+              action="{{ url_for('api_feedback_delete', signature=fb.signature) }}">
+          <button class="btn small danger">移除规则</button></form></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div class="muted">暂无反馈规则。在下方事件上点“标误报”即可生成。</div>{% endif %}
+</div>
+
+<div class="card">
+  <h2>漂移事件（{{ events|length }}）</h2>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>日期</th><th>表</th><th>列</th><th>指标</th><th>级别</th>
+      <th>实测值</th><th class="wrap">说明</th><th>状态</th><th>操作</th>
+    </tr></thead>
+    <tbody>
+    {% for e in events %}
+      <tr {% if e.suppressed %}style="opacity:.65"{% endif %}>
+        <td class="mono">{{ e.snapshot_date }}</td>
+        <td>{{ sources.get(e.table_id, e.table_id) }}</td>
+        <td>{{ e.column_name or '—' }}</td>
+        <td>{{ metric_labels.get(e.metric, e.metric) }}</td>
+        <td><span class="badge {{ e.severity }}">{{ severity_labels[e.severity] }}</span></td>
+        <td class="mono">{{ e.value if e.value is not none else '—' }}</td>
+        <td class="wrap">{{ e.message }}</td>
+        <td><span class="badge {{ e.status }}">{{ e.status }}</span></td>
+        <td style="white-space:nowrap">
+          <form class="inline-form" method="post"
+                action="{{ url_for('api_event_status', event_id=e.event_id) }}">
+            <input type="hidden" name="status" value="false_positive">
+            <button class="btn small danger">标误报</button>
+          </form>
+          <form class="inline-form" method="post"
+                action="{{ url_for('api_event_status', event_id=e.event_id) }}">
+            <input type="hidden" name="status" value="resolved">
+            <button class="btn small">已处理</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,3 +1,17 @@
+# 运行产物
+data/sources/
+data/dataprobe_meta.db
+data/dataprobe_meta.db-wal
+data/dataprobe_meta.db-shm
+data/eval_report.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
 .env
 .env.*
 !.env.example
@@ -13,6 +27,3 @@ credentials*.json
 .npmrc
 .pypirc
 node_modules/
-__pycache__/
-.venv/
-venv/

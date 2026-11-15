@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="card" style="margin-bottom:20px">
+  <h2>登记新来源</h2>
+  <form method="post" action="{{ url_for('api_add_source') }}">
+    <div class="form-row">
+      <div><label>来源名称（唯一）</label><input name="name" required placeholder="orders"></div>
+      <div><label>类型</label>
+        <select name="kind">
+          <option value="csv">逗号分隔文本 CSV</option>
+          <option value="parquet">Parquet</option>
+          <option value="sqlite">SQLite 库</option>
+        </select></div>
+      <div><label>文件路径（SQLite 为 .db 路径）</label>
+        <input name="path" required placeholder="data/sources/csv/orders/2026-09-01.csv"></div>
+      <div><label>SQLite 表名（其余类型留空）</label><input name="table_name"></div>
+      <div><label>备注</label><input name="note"></div>
+      <div><button class="btn primary" type="submit">登记</button></div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>已登记来源（{{ sources|length }}）</h2>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>名称</th><th>类型</th><th>路径</th><th>表名</th><th>备注</th><th></th></tr></thead>
+    <tbody>
+    {% for s in sources %}
+      <tr>
+        <td><a href="{{ url_for('table_detail', table_id=s.table_id) }}">{{ s.name }}</a></td>
+        <td><span class="kind-tag">{{ s.kind }}</span></td>
+        <td class="wrap mono">{{ s.path }}</td>
+        <td class="mono">{{ s.table_name or '—' }}</td>
+        <td class="wrap">{{ s.note }}</td>
+        <td>
+          <form class="inline-form" method="post"
+                action="{{ url_for('api_delete_source', name=s.name) }}"
+                onsubmit="return confirm('确认删除来源 {{ s.name }}？画像与事件数据保留。')">
+            <button class="btn small danger">删除</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

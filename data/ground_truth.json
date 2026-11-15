@@ -1,0 +1,200 @@
+[
+  {
+    "table": "orders",
+    "kind": "mean_shift",
+    "column": "amount",
+    "expected_metric": "numeric_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "amount 均值平移"
+  },
+  {
+    "table": "orders",
+    "kind": "category_proportion",
+    "column": "channel",
+    "expected_metric": "category_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "channel 类别占比重排"
+  },
+  {
+    "table": "customers",
+    "kind": "null_spike",
+    "column": "mobile",
+    "expected_metric": "null_rate",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "mobile 空值率突增"
+  },
+  {
+    "table": "customers",
+    "kind": "pattern_change",
+    "column": "email_addr",
+    "expected_metric": "pattern_drift",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "email_addr 文本格式变化"
+  },
+  {
+    "table": "payments",
+    "kind": "bool_flip",
+    "column": "is_success",
+    "expected_metric": "bool_ratio",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "is_success 布尔占比翻转"
+  },
+  {
+    "table": "payments",
+    "kind": "new_category",
+    "column": "pay_method",
+    "expected_metric": "category_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "pay_method 出现新类别"
+  },
+  {
+    "table": "inventory",
+    "kind": "outlier_injection",
+    "column": "unit_cost",
+    "expected_metric": "range_shift",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "unit_cost 注入离群值"
+  },
+  {
+    "table": "clicks",
+    "kind": "scale_change",
+    "column": "dwell_seconds",
+    "expected_metric": "numeric_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "dwell_seconds 尺度放大/缩小"
+  },
+  {
+    "table": "clicks",
+    "kind": "volume_drop",
+    "column": null,
+    "expected_metric": "row_volume",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-30",
+    "description": "埋点丢失导致行数骤降"
+  },
+  {
+    "table": "refunds",
+    "kind": "gradual_shift",
+    "column": "refund_amount",
+    "expected_metric": "numeric_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-26",
+    "description": "refund_amount 渐进式均值漂移"
+  },
+  {
+    "table": "logistics",
+    "kind": "pattern_change",
+    "column": "receiver_phone",
+    "expected_metric": "pattern_drift",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "receiver_phone 文本格式变化"
+  },
+  {
+    "table": "marketing",
+    "kind": "range_expand",
+    "column": "spend",
+    "expected_metric": "range_shift",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "spend 取值范围扩大"
+  },
+  {
+    "table": "after_sales",
+    "kind": "cardinality_collapse",
+    "column": "ticket_type",
+    "expected_metric": "cardinality",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "ticket_type 基数塌缩"
+  },
+  {
+    "table": "risk_scores",
+    "kind": "mean_shift",
+    "column": "risk_score",
+    "expected_metric": "numeric_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "risk_score 均值平移"
+  },
+  {
+    "table": "iot_sensors",
+    "kind": "mean_shift",
+    "column": "temperature",
+    "expected_metric": "numeric_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "temperature 均值平移"
+  },
+  {
+    "table": "user_behavior",
+    "kind": "category_proportion",
+    "column": "event",
+    "expected_metric": "category_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "event 类别占比重排"
+  },
+  {
+    "table": "transactions",
+    "kind": "unit_change",
+    "column": "txn_amount",
+    "expected_metric": "numeric_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "txn_amount 单位换算导致尺度变化"
+  },
+  {
+    "table": "members",
+    "kind": "pattern_change",
+    "column": "vip_phone",
+    "expected_metric": "pattern_drift",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "vip_phone 文本格式变化"
+  },
+  {
+    "table": "bank_cards",
+    "kind": "null_spike",
+    "column": "balance",
+    "expected_metric": "null_rate",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "balance 空值率突增"
+  },
+  {
+    "table": "loan_apps",
+    "kind": "category_proportion",
+    "column": "loan_status",
+    "expected_metric": "category_distribution",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "loan_status 类别占比重排"
+  },
+  {
+    "table": "trades_rename",
+    "kind": "rename",
+    "column": "book_amount",
+    "expected_metric": "column_renamed",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "book_amount 列改名"
+  },
+  {
+    "table": "trades_reorder",
+    "kind": "reorder",
+    "column": "deal_status",
+    "expected_metric": "column_reordered",
+    "start_date": "2026-10-06",
+    "end_date": "2026-10-31",
+    "description": "deal_status 列位置挪动"
+  }
+]

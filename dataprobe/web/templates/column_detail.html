@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% from "_macros.html" import sparkline %}
+{% block body %}
+<div class="flush" style="margin-bottom:16px">
+  <div>
+    <h2 style="margin:0">单列详情：{{ cur.column_name }}
+      <span class="kind-tag">{{ cur.inferred_type }}</span></h2>
+    <div class="muted" style="margin-top:4px">
+      稳定身份 <code class="sig">{{ cur.stable_col_id }}</code>
+      {% if ident %}
+        ｜ 原名 <b>{{ ident.original_name }}</b>
+        {% if ident.original_name != ident.current_name %}(已改名){% endif %}
+        ｜ 初始位置 {{ ident.original_ordinal }} → 当前 {{ ident.current_ordinal }}
+        ｜ 首次出现 {{ ident.first_seen_date }}
+      {% endif %}
+    </div>
+  </div>
+  <a class="btn" href="{{ url_for('table_detail', table_id=table_id) }}">← 返回表详情</a>
+</div>
+
+{% set p = cur.profile %}
+<div class="grid grid-4" style="margin-bottom:20px">
+  <div class="card"><div class="muted">空值率</div>
+    <div class="stat" style="font-size:22px">{{ '%.2f%%'|format(cur.null_rate*100) }}</div>
+    <div class="muted">空值 {{ cur.null_count }} / {{ p.total_count }}</div></div>
+  <div class="card"><div class="muted">基数</div>
+    <div class="stat" style="font-size:22px">{{ cur.distinct_count }}</div>
+    <div class="muted">去重率 {{ '%.2f%%'|format(cur.distinct_ratio*100) }}</div></div>
+  {% if p.numeric %}
+  <div class="card"><div class="muted">中位数 / 均值</div>
+    <div class="stat" style="font-size:22px">{{ p.numeric.median }}</div>
+    <div class="muted">均值 {{ p.numeric.mean }}，σ {{ p.numeric.std }}</div></div>
+  <div class="card"><div class="muted">取值范围</div>
+    <div class="stat" style="font-size:22px">{{ p.numeric.min }} ~ {{ p.numeric.max }}</div>
+    <div class="muted">Q05 {{ p.numeric.q05 }} / Q95 {{ p.numeric.q95 }}</div></div>
+  {% elif p.boolean %}
+  <div class="card"><div class="muted">true 占比</div>
+    <div class="stat" style="font-size:22px">{{ '%.1f%%'|format(p.boolean.true_ratio*100) }}</div>
+    <div class="muted">true {{ p.boolean.true_count }} / false {{ p.boolean.false_count }}</div></div>
+  <div class="card"><div class="muted">总非空</div>
+    <div class="stat" style="font-size:22px">{{ p.total_count - p.null_count }}</div></div>
+  {% elif p.datetime %}
+  <div class="card"><div class="muted">最早 / 最晚</div>
+    <div class="stat muted" style="font-size:15px;padding-top:6px">{{ p.datetime.min }}</div>
+    <div class="stat muted" style="font-size:15px">{{ p.datetime.max }}</div></div>
+  <div class="card"><div class="muted">跨度（天）</div>
+    <div class="stat" style="font-size:22px">{{ p.datetime.range_days }}</div></div>
+  {% elif p.text %}
+  <div class="card"><div class="muted">文本长度</div>
+    <div class="stat" style="font-size:22px">{{ p.text.min_length }}~{{ p.text.max_length }}</div>
+    <div class="muted">平均 {{ p.text.avg_length }}</div></div>
+  <div class="card"><div class="muted">主导格式</div>
+    <div class="stat" style="font-size:18px;padding-top:6px">
+      {{ p.text.patterns.dominant_label or '混合格式' }}</div></div>
+  {% endif %}
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <h2>空值率趋势</h2>
+    {{ sparkline(history | map(attribute='null_rate') | list, w=520, h=170, color='#dc2626') }}
+  </div>
+  <div class="card">
+    <h2>基数趋势</h2>
+    {{ sparkline(history | map(attribute='distinct_count') | list, w=520, h=170, color='#0891b2') }}
+  </div>
+</div>
+
+{% if p.numeric %}
+<div class="card" style="margin-top:16px">
+  <h2>数值分布趋势（中位数与均值）</h2>
+  <div class="two-col">
+    <div>中位数{{ sparkline(history | map(attribute='profile') | map(attribute='numeric')
+        | select | map(attribute='median') | list, w=520, h=160) }}</div>
+    <div>均值{{ sparkline(history | map(attribute='profile') | map(attribute='numeric')
+        | select | map(attribute='mean') | list, w=520, h=160, color='#059669') }}</div>
+  </div>
+  <h2 style="margin-top:18px">当日直方图</h2>
+  {% set h = p.numeric.histogram %}
+  <svg class="chart" style="height:170px" viewBox="0 0 600 170">
+    {% set mx = h.counts|max if h.counts|max > 0 else 1 %}
+    {% for c in h.counts %}
+    <rect x="{{ loop.index0 * (600 / h.counts|length) + 2 }}"
+          y="{{ 150 - c / mx * 130 }}" width="{{ 600 / h.counts|length - 4 }}"
+          height="{{ c / mx * 130 }}" fill="#2563eb" opacity="0.75">
+      <title>{{ c }} 条</title></rect>
+    {% endfor %}
+  </svg>
+  <div class="muted mono">分桶边界：{{ h.edges|join(' , ') }}</div>
+</div>
+{% endif %}
+
+{% if p.text %}
+<div class="two-col" style="margin-top:16px">
+  <div class="card">
+    <h2>格式模式归纳（结构签名 → 语义）</h2>
+    <table>
+      <thead><tr><th>结构签名</th><th>示例</th><th>占比</th><th>次数</th></tr></thead>
+      <tbody>
+      {% for s in p.text.patterns.signatures[:12] %}
+        <tr><td class="mono">{{ s.signature }}</td>
+            <td class="wrap">{{ s.example }}</td>
+            <td>{{ '%.2f%%'|format(s.ratio*100) }}</td><td>{{ s.count }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if p.text.patterns.labels %}
+    <div class="muted" style="margin-top:10px">识别到的语义标签：</div>
+    <div class="pill-list" style="margin-top:6px">
+      {% for l in p.text.patterns.labels %}
+        <span class="pill">{{ l.label }} {{ '%.1f%%'|format(l.ratio*100) }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>高频值 Top 15</h2>
+    <table>
+      <thead><tr><th>值</th><th>占比</th><th>次数</th></tr></thead>
+      <tbody>
+      {% for t in p.text.top_values[:15] %}
+        <tr><td class="wrap">{{ t.value }}</td>
+            <td>{{ '%.2f%%'|format(t.ratio*100) }}</td><td>{{ t.count }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if p.datetime %}
+<div class="card" style="margin-top:16px">
+  <h2>星期分布</h2>
+  <div class="pill-list">
+    {% for wd in range(7) %}
+      <span class="pill">{{ ['周一','周二','周三','周四','周五','周六','周日'][wd] }}：
+        {{ p.datetime.weekday_dist.get(wd|string, 0) }}</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card" style="margin-top:16px">
+  <h2>该列漂移事件（{{ events|length }}）</h2>
+  {% if events %}
+  <table>
+    <thead><tr><th>日期</th><th>指标</th><th>级别</th><th class="wrap">说明</th><th>状态</th><th></th></tr></thead>
+    <tbody>
+    {% for e in events %}
+      <tr>
+        <td class="mono">{{ e.snapshot_date }}</td>
+        <td>{{ metric_labels.get(e.metric, e.metric) }}</td>
+        <td><span class="badge {{ e.severity }}">{{ severity_labels[e.severity] }}</span></td>
+        <td class="wrap">{{ e.message }}</td>
+        <td><span class="badge {{ e.status }}">{{ e.status }}</span></td>
+        <td>
+          <form class="inline-form" method="post"
+                action="{{ url_for('api_event_status', event_id=e.event_id) }}">
+            <input type="hidden" name="status" value="false_positive">
+            <button class="btn small danger">标误报</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div class="muted">该列暂无漂移事件</div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="card" style="margin-bottom:20px">
+  <h2>新增阈值覆盖（留空作用域=全局默认；选择表=仅该表生效）</h2>
+  <form method="post" action="{{ url_for('api_set_threshold') }}">
+    <div class="form-row">
+      <div><label>作用域</label>
+        <select name="scope" id="scopeSel">
+          <option value="global">全局</option>
+          <option value="table">单表</option>
+        </select></div>
+      <div id="tableBox" style="display:none"><label>指定表</label>
+        <select name="table_id">
+          {% for s in sources %}
+            <option value="{{ s.table_id }}">{{ s.name }}</option>
+          {% endfor %}
+        </select></div>
+      <div><label>阈值项</label>
+        <select name="key">
+          {% for key, (desc, default) in schema.items() %}
+            <option value="{{ key }}">{{ key }}（默认 {{ default }}）</option>
+          {% endfor %}
+        </select></div>
+      <div><label>新值</label><input name="value" required placeholder="如 0.25"></div>
+      <div><button class="btn primary" type="submit">保存覆盖</button></div>
+    </div>
+  </form>
+</div>
+
+<div class="card" style="margin-bottom:20px">
+  <h2>当前生效阈值（全局口径）与说明</h2>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>配置键</th><th>说明</th><th>默认/当前值</th></tr></thead>
+    <tbody>
+    {% for key, (desc, default) in schema.items() %}
+      <tr><td class="mono">{{ key }}</td><td class="wrap">{{ desc }}</td>
+          <td>{{ defaults[key] }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>已保存的覆盖规则（{{ overrides|length }}）</h2>
+  {% if overrides %}
+  <table>
+    <thead><tr><th>作用域</th><th>表</th><th>阈值项</th><th>覆盖值</th><th>更新时间</th><th></th></tr></thead>
+    <tbody>
+    {% for o in overrides %}
+      <tr>
+        <td>{{ o.scope }}</td>
+        <td>{{ o.table_id or '—' }}</td>
+        <td class="mono">{{ o.key }}</td>
+        <td class="mono">{{ o.value }}</td>
+        <td class="mono">{{ o.updated_at }}</td>
+        <td>
+          <form class="inline-form" method="post"
+                action="{{ url_for('api_delete_threshold') }}">
+            <input type="hidden" name="scope" value="{{ o.scope }}">
+            <input type="hidden" name="key" value="{{ o.key }}">
+            <input type="hidden" name="table_id" value="{{ o.table_id or '' }}">
+            <button class="btn small danger">恢复默认</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div class="muted">暂无覆盖，全部使用默认阈值。</div>{% endif %}
+</div>
+
+<script>
+const sel = document.getElementById('scopeSel');
+const box = document.getElementById('tableBox');
+function toggle(){ box.style.display = sel.value === 'table' ? '' : 'none'; }
+sel.addEventListener('change', toggle); toggle();
+</script>
+{% endblock %}

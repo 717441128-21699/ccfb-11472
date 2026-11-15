@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}数据画像与漂移监控{% endblock %}</title>
+<style>
+:root{
+  --bg:#f5f7fa; --card:#fff; --line:#e3e8ef; --text:#1f2937; --muted:#6b7280;
+  --brand:#2563eb; --brand-d:#1d4ed8;
+  --crit:#dc2626; --warn:#d97706; --info:#0891b2; --ok:#059669;
+  --crit-bg:#fef2f2; --warn-bg:#fffbeb; --info-bg:#ecfeff; --ok-bg:#ecfdf5;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f172a; --card:#1e293b; --line:#334155; --text:#e2e8f0;
+    --muted:#94a3b8; --brand:#60a5fa; --brand-d:#3b82f6;
+    --crit-bg:#450a0a; --warn-bg:#451a03; --info-bg:#083344; --ok-bg:#022c22; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.6 "Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);
+  padding:0 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+header .logo{font-weight:700;font-size:16px;color:var(--brand);padding:14px 0}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav a{padding:14px 14px;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent}
+nav a.active{color:var(--brand);border-bottom-color:var(--brand)}
+nav a:hover{color:var(--brand)}
+main{max-width:1280px;margin:0 auto;padding:24px}
+.grid{display:grid;gap:16px}
+.grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px}
+.card h2{margin:0 0 12px;font-size:15px}
+.stat{font-size:26px;font-weight:700}
+.stat.crit{color:var(--crit)} .stat.warn{color:var(--warn)}
+.stat.ok{color:var(--ok)} .stat.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);
+  white-space:nowrap;vertical-align:top}
+th{color:var(--muted);font-weight:600;background:transparent}
+tr:hover td{background:rgba(37,99,235,.05)}
+td.wrap,th.wrap{white-space:normal;min-width:200px}
+a{color:var(--brand);text-decoration:none}
+a:hover{text-decoration:underline}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600}
+.badge.critical{background:var(--crit-bg);color:var(--crit)}
+.badge.warning{background:var(--warn-bg);color:var(--warn)}
+.badge.info{background:var(--info-bg);color:var(--info)}
+.badge.open{background:var(--warn-bg);color:var(--warn)}
+.badge.false_positive{background:var(--crit-bg);color:var(--crit)}
+.badge.auto_downgraded{background:var(--info-bg);color:var(--info)}
+.badge.resolved{background:var(--ok-bg);color:var(--ok)}
+.kind-tag{font-size:11px;padding:2px 7px;border:1px solid var(--line);border-radius:6px;color:var(--muted)}
+.btn{display:inline-block;border:1px solid var(--line);background:var(--card);color:var(--text);
+  padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.danger{color:var(--crit);border-color:var(--crit)}
+.btn.small{padding:3px 10px;font-size:12px}
+.btn:hover{filter:brightness(.96);text-decoration:none}
+input,select,textarea{background:var(--card);color:var(--text);border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;font-size:13px;width:100%}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.toolbar form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)}
+.mono{font-family:Consolas,monospace;font-size:12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){.two-col{grid-template-columns:1fr}}
+svg.chart{width:100%;height:200px;display:block}
+.pill-list{display:flex;flex-wrap:wrap;gap:6px}
+.pill{background:var(--bg);border:1px solid var(--line);border-radius:999px;
+  padding:3px 10px;font-size:12px}
+.inline-form{display:inline}
+.flush{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+code.sig{background:var(--bg);padding:1px 6px;border-radius:5px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">📊 DataProbe 画像与漂移监控</div>
+  <nav>
+    <a href="{{ url_for('index') }}" {% if request.endpoint=='index' %}class="active"{% endif %}>表画像</a>
+    <a href="{{ url_for('sources_page') }}" {% if request.endpoint=='sources_page' %}class="active"{% endif %}>来源登记</a>
+    <a href="{{ url_for('events_page') }}" {% if request.endpoint=='events_page' %}class="active"{% endif %}>漂移事件</a>
+    <a href="{{ url_for('thresholds_page') }}" {% if request.endpoint=='thresholds_page' %}class="active"{% endif %}>阈值配置</a>
+  </nav>
+</header>
+<main>
+{% block body %}{% endblock %}
+</main>
+</body>
+</html>

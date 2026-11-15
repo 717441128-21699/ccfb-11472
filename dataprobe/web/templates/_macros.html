@@ -1,0 +1,14 @@
+{# 纯宏文件，不含 extends，可被任意模板安全导入 #}
+{% macro sparkline(points, w=260, h=56, color='#2563eb') %}
+{%- if points|length >= 2 -%}
+<svg class="chart" style="height:{{h}}px;width:{{w}}px" viewBox="0 0 {{w}} {{h}}">
+{%- set mn = points|min -%}{%- set mx = points|max -%}
+{%- set rng = (mx - mn) if (mx - mn) > 0 else 1 -%}
+<polyline fill="none" stroke="{{color}}" stroke-width="2" points="
+{%- for v in points -%}
+{{ (loop.index0 * w / (points|length - 1))|round(1) }},{{ (h - 6 - (v - mn) / rng * (h - 12))|round(1) }}
+{%- endfor -%}"/>
+{% if mx == mn %}<line x1="0" y1="{{h/2}}" x2="{{w}}" y2="{{h/2}}" stroke="{{color}}" stroke-width="2"/>{% endif %}
+</svg>
+{%- else -%}<span class="muted">数据不足</span>{%- endif -%}
+{% endmacro %}
